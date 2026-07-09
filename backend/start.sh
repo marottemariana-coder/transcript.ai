@@ -6,7 +6,10 @@
 # reinicia o container).
 set -e
 
-celery -A app.workers.celery_app worker --loglevel=info &
+# --pool=solo --concurrency=1: o pool "prefork" padrao sobe 8 processos filhos
+# e estoura a memoria em ambientes pequenos (ex: Railway trial). Para uso de
+# uma pessoa so, um worker por vez e suficiente.
+celery -A app.workers.celery_app worker --loglevel=info --pool=solo --concurrency=1 &
 CELERY_PID=$!
 
 uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" &
