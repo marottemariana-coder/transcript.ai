@@ -44,8 +44,10 @@ def _video_codec(path: str) -> str:
 def _transcode_h264(src: str) -> str:
     dst = src + ".h264.mp4"
     subprocess.run(
+        # preset mais leve e threads limitadas: reduz o pico de memoria do
+        # libx264 (importante em ambientes com RAM restrita, ex: Railway trial)
         ["ffmpeg", "-y", "-i", src,
-         "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-threads", "2",
          "-c:a", "aac", "-b:a", "192k",
          "-movflags", "+faststart", dst],
         capture_output=True, timeout=600, check=True,
