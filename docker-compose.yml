@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: transcript
+      POSTGRES_PASSWORD: transcript
+      POSTGRES_DB: transcript
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    ports: ["5432:5432"]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  api:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env
+    volumes: ["./backend:/code", "media:/data/media"]
+    ports: ["8000:8000"]
+    depends_on: [db, redis]
+  worker:
+    build: ./backend
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    env_file: .env
+    volumes: ["./backend:/code", "media:/data/media"]
+    depends_on: [db, redis]
+  frontend:
+    build: ./frontend
+    ports: ["5173:5173"]
+    volumes: ["./frontend:/app", "/app/node_modules"]
+    depends_on: [api]
+volumes:
+  pgdata:
+  media:

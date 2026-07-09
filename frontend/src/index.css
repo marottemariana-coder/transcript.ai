@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #F4F2ED;
+  --ink: #101010;
+  --gray: #8B8880;
+  --hairline: #D9D6CE;
+  --card: #FAF9F6;
+}
+
+* { border-color: var(--hairline); }
+
+body { @apply bg-paper text-ink font-body antialiased; }
+
+h1, h2, h3 { @apply font-display tracking-[-0.03em]; }
+
+/* Numeracao editorial: ( 001 ) */
+.editorial-index { @apply font-mono text-xs text-gray tabular-nums; }
+.editorial-index::before { content: '( '; }
+.editorial-index::after { content: ' )'; }
+
+.card { @apply bg-card border border-hairline rounded p-6; }
+
+.pill {
+  @apply inline-flex items-center gap-1.5 border border-ink rounded-full font-mono text-[10px] uppercase tracking-[0.08em] px-3 py-1 text-ink bg-transparent transition-colors;
+}
+.pill-active { @apply bg-ink text-paper; }
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 border border-ink bg-ink text-paper font-mono text-xs uppercase tracking-[0.08em] px-5 py-2.5 rounded-full
+    hover:bg-transparent hover:text-ink transition-colors disabled:opacity-40 disabled:pointer-events-none;
+}
+.btn::after { content: '→'; }
+.btn-ghost {
+  @apply inline-flex items-center justify-center border border-ink bg-transparent text-ink font-mono text-xs uppercase tracking-[0.08em] px-5 py-2.5 rounded-full
+    hover:bg-ink hover:text-paper transition-colors disabled:opacity-40 disabled:pointer-events-none;
+}
+.input {
+  @apply w-full border-0 border-b border-hairline bg-transparent px-0 py-2.5 text-sm rounded-none
+    focus:outline-none focus:border-ink transition-colors;
+}
+.mono-label { @apply font-mono text-xs uppercase tracking-[0.08em] text-gray; }
+
+.hr { @apply border-t border-hairline; }
+
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
