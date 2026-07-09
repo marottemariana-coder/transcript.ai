@@ -195,12 +195,14 @@ def _download_photos(url: str, out_dir: str) -> dict:
     opts = {"quiet": True, "noplaylist": False, "ignoreerrors": True}
     if settings.YTDLP_COOKIES_FILE:
         opts["cookiefile"] = settings.YTDLP_COOKIES_FILE
+    extract_error = None
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=False, process=False) or {}
         title = info.get("title") or title
-    except Exception:
+    except Exception as e:
         info = {}
+        extract_error = str(e)
 
     entries = info.get("entries") or ([info] if info else [])
 
@@ -237,6 +239,13 @@ def _download_photos(url: str, out_dir: str) -> dict:
                 pass
 
     if not downloaded:
+        if extract_error and ("not available to everyone" in extract_error.lower()
+                               or "certain audiences" in extract_error.lower()):
+            raise DownloadError(
+                "Este conteudo tem restricao de audiencia no Instagram (idade, sensibilidade "
+                "ou publico especifico) e so pode ser visto por quem esta logado. Sem uma sessao "
+                "conectada (cookies), o download nao e possivel para este link especifico."
+            )
         raise DownloadError(
             "Nao foi possivel baixar as imagens. Verifique se o perfil e publico."
         )
@@ -265,10 +274,17 @@ def download_media(url: str, out_dir: str, audio_only: bool = True,
         raise
     except yt_dlp.utils.DownloadError as e:
         msg = str(e)
-        if "private" in msg.lower() or "login" in msg.lower():
+        msg_lower = msg.lower()
+        if "not available to everyone" in msg_lower or "certain audiences" in msg_lower:
+            raise DownloadError(
+                "Este conteudo tem restricao de audiencia no Instagram (idade, sensibilidade "
+                "ou publico especifico) e so pode ser visto por quem esta logado. Sem uma sessao "
+                "conectada (cookies), o download nao e possivel para este link especifico."
+            )
+        if "private" in msg_lower or "login" in msg_lower:
             raise DownloadError("Conteudo privado ou que exige login.")
         # Instagram photo post: yt-dlp says "no video" when called as video — retry as photo
-        if "no video" in msg.lower() and media_type != "photo":
+        if "no video" in msg_lower and media_type != "photo":
             try:
                 return _download_photos(url, out_dir)
             except (DownloadError, Exception):
