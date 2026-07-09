@@ -24,7 +24,9 @@ export default function App() {
                 <Link to="/dashboard" className="font-mono text-xs uppercase tracking-[0.08em] text-gray hover:text-ink transition-colors">minhas transcrições</Link>
                 <Link to="/downloads" className="font-mono text-xs uppercase tracking-[0.08em] text-gray hover:text-ink transition-colors">downloads</Link>
                 <Link to="/analyze" className="font-mono text-xs uppercase tracking-[0.08em] text-gray hover:text-ink transition-colors">analisar</Link>
-                {user.plan !== 'pro' && (
+                {user.plan === 'pro' ? (
+                  <span className="pill pill-active" title="plano pro, sem limite de minutos">pro</span>
+                ) : (
                   <span className="hidden sm:inline font-mono text-xs text-gray opacity-40 hover:opacity-100 transition-opacity cursor-default"
                     title={`${user.minutes_used} de ${user.minutes_limit} minutos usados este mes`}>
                     {user.minutes_used}/{user.minutes_limit} min
