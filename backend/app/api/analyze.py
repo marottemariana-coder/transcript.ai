@@ -5,7 +5,7 @@ import uuid
 import yt_dlp
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
-from ..api.deps import optional_user
+from ..api.deps import require_pro
 from ..models import User
 from ..services.analyzer import analyze_media
 from ..services.downloader import detect_platform
@@ -26,7 +26,7 @@ def _tmpdir():
 @router.post("/upload")
 async def analyze_upload(
     file: UploadFile = File(...),
-    user: User | None = Depends(optional_user),
+    user: User = Depends(require_pro),
 ):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED:
@@ -57,7 +57,7 @@ class LinkBody(BaseModel):
 
 
 @router.post("/link")
-def analyze_link(body: LinkBody, user: User | None = Depends(optional_user)):
+def analyze_link(body: LinkBody, user: User = Depends(require_pro)):
     if not detect_platform(body.url):
         raise HTTPException(422, "Link nao reconhecido. Use YouTube, Instagram, TikTok, Facebook ou Pinterest.")
     tmpdir = _tmpdir()

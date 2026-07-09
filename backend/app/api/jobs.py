@@ -9,24 +9,11 @@ from ..models import Job, JobStatus, SourceType, User, Transcript, Translation
 from ..core.config import settings
 from ..services.downloader import detect_platform
 from ..workers.tasks import process_job
-from .deps import optional_user, current_user
+from .deps import optional_user, current_user, require_pro
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 ALLOWED_EXT = {".mp4", ".mov", ".mkv", ".webm", ".mp3", ".wav", ".m4a", ".ogg", ".flac"}
-
-
-def _check_quota(db: Session, user: User | None, anon_id: str | None):
-    """Cota mensal (plano free) e limite de uso anonimo (Secao 9)."""
-    if user:
-        if user.plan == "free" and user.minutes_used_this_month(db) >= settings.FREE_PLAN_MINUTES:
-            raise HTTPException(402, "Cota mensal do plano gratuito esgotada")
-    else:
-        if not anon_id:
-            raise HTTPException(400, "Identificador anonimo ausente")
-        prev = db.query(Job).filter_by(anon_id=anon_id).count()
-        if prev >= 1:
-            raise HTTPException(401, "Crie uma conta gratis para continuar transcrevendo")
 
 
 def _serialize(job: Job) -> dict:
@@ -49,21 +36,19 @@ async def create_upload_job(
     diarize: bool = Form(False),
     translate_to: str | None = Form(None),
     source: str = Form("upload"),  # "upload" | "recording" (Secao 10, mesmo pipeline)
-    x_anon_id: str = Header(default=None),
-    user: User | None = Depends(optional_user),
+    user: User = Depends(require_pro),
     db: Session = Depends(get_db),
 ):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXT:
         raise HTTPException(415, f"Formato nao suportado: {ext}")
-    _check_quota(db, user, x_anon_id)
     dest_dir = os.path.join(settings.MEDIA_DIR, "uploads")
     os.makedirs(dest_dir, exist_ok=True)
     path = os.path.join(dest_dir, f"{uuid.uuid4()}{ext}")
     with open(path, "wb") as f:
         while chunk := await file.read(1024 * 1024):
             f.write(chunk)
-    job = Job(user_id=user.id if user else None, anon_id=None if user else x_anon_id,
+    job = Job(user_id=user.id,
               source_type=SourceType.recording if source == "recording" else SourceType.upload,
               original_filename=file.filename, media_path=path,
               diarize=diarize, auto_translate_to=translate_to)
@@ -80,12 +65,11 @@ class LinkBody(BaseModel):
 
 
 @router.post("/link")
-def create_link_job(body: LinkBody, x_anon_id: str = Header(default=None),
-                    user: User | None = Depends(optional_user), db: Session = Depends(get_db)):
+def create_link_job(body: LinkBody,
+                    user: User = Depends(require_pro), db: Session = Depends(get_db)):
     if not detect_platform(body.url):
         raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook, Pinterest")
-    _check_quota(db, user, x_anon_id)
-    job = Job(user_id=user.id if user else None, anon_id=None if user else x_anon_id,
+    job = Job(user_id=user.id,
               source_type=SourceType.link, source_url=body.url, diarize=body.diarize,
               auto_translate_to=body.translate_to, keep_original=body.keep_original)
     db.add(job); db.commit()
@@ -98,7 +82,7 @@ class PreviewBody(BaseModel):
 
 
 @router.post("/preview")
-def preview_url(body: PreviewBody, user: User | None = Depends(optional_user)):
+def preview_url(body: PreviewBody, user: User = Depends(require_pro)):
     """Inspeciona um link e retorna lista de itens sem baixar nada."""
     import yt_dlp as _ydl
     if not detect_platform(body.url):
@@ -172,14 +156,14 @@ class DownloadBody(BaseModel):
 
 
 @router.post("/download")
-def create_download_job(body: DownloadBody, x_anon_id: str = Header(default=None),
-                        user: User | None = Depends(optional_user), db: Session = Depends(get_db)):
+def create_download_job(body: DownloadBody,
+                        user: User = Depends(require_pro), db: Session = Depends(get_db)):
     """Download de midia sem transcrever — video ou foto/carrossel."""
     if not detect_platform(body.url):
         raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook, Pinterest")
     import json as _json
     meta = _json.dumps({"media_type": body.media_type, "items": body.items})
-    job = Job(user_id=user.id if user else None, anon_id=None if user else x_anon_id,
+    job = Job(user_id=user.id,
               source_type=SourceType.link, source_url=body.url,
               keep_original=True, download_only=True,
               auto_translate_to=meta)
@@ -204,7 +188,7 @@ class BatchBody(BaseModel):
 
 
 @router.post("/batch")
-def create_batch(body: BatchBody, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def create_batch(body: BatchBody, user: User = Depends(require_pro), db: Session = Depends(get_db)):
     """Ate 50 links, cada um vira um job independente (Secao 5). Exige conta."""
     urls = [u.strip() for u in body.urls if u.strip()][:50]
     if not urls:

@@ -21,7 +21,7 @@ export default function Landing() {
           </h1>
           <p className="text-gray text-sm max-w-md hero-subtitle">
             áudio, vídeo, fotos e carrosséis das redes sociais, transcritos, traduzidos e
-            analisados por IA. a primeira transcrição não exige conta.
+            analisados por IA. acesso disponível para contas do plano pro.
           </p>
         </div>
 

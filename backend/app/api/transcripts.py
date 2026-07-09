@@ -6,7 +6,7 @@ from ..models import Transcript, Translation, User, SpeakerProfile
 from ..services.translation import translate_segments
 from ..services import ai_features, voice_library
 from ..services import exporters
-from .deps import optional_user, current_user
+from .deps import optional_user, current_user, require_pro
 
 router = APIRouter(prefix="/transcripts", tags=["transcripts"])
 
@@ -83,10 +83,10 @@ class TranslateBody(BaseModel):
 
 
 @router.post("/{tid}/translate")
-def translate(tid: int, body: TranslateBody, x_anon_id: str = Header(default=None),
-              user: User | None = Depends(optional_user), db: Session = Depends(get_db)):
+def translate(tid: int, body: TranslateBody,
+              user: User = Depends(require_pro), db: Session = Depends(get_db)):
     """Traducao pos-transcricao para qualquer idioma (Secao 4), lado a lado com o original."""
-    t = _get(db, tid, user, x_anon_id)
+    t = _get(db, tid, user, None)
     existing = next((tr for tr in t.translations if tr.target_language == body.target_language), None)
     if existing:
         return {"id": existing.id, "lang": existing.target_language,
@@ -133,10 +133,9 @@ class ChatBody(BaseModel):
 
 @router.post("/{tid}/ai/{feature}")
 def ai(tid: int, feature: str, body: ChatBody | None = None,
-       x_anon_id: str = Header(default=None),
-       user: User | None = Depends(optional_user), db: Session = Depends(get_db)):
+       user: User = Depends(require_pro), db: Session = Depends(get_db)):
     """Secao 8: resumo, citacoes, mapa mental, roteiro e chat com o video."""
-    t = _get(db, tid, user, x_anon_id)
+    t = _get(db, tid, user, None)
     if feature == "summary":
         return {"result": ai_features.summarize(t.text)}
     if feature == "quotes":

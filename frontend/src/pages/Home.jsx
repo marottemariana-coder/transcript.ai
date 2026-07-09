@@ -39,7 +39,7 @@ export default function Home() {
           <span className="hero-line">áudio e vídeo</span>
           <span className="hero-line">em texto</span>
         </h1>
-        <p className="text-gray text-sm max-w-md hero-subtitle">envie um arquivo, cole um link ou grave direto. a primeira transcrição não exige conta.</p>
+        <p className="text-gray text-sm max-w-md hero-subtitle">envie um arquivo, cole um link ou grave direto. disponível para contas do plano pro.</p>
       </div>
 
       <div className="flex gap-2">
