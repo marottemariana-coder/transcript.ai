@@ -59,7 +59,7 @@ class LinkBody(BaseModel):
 @router.post("/link")
 def analyze_link(body: LinkBody, user: User | None = Depends(optional_user)):
     if not detect_platform(body.url):
-        raise HTTPException(422, "Link nao reconhecido. Use YouTube, Instagram, TikTok ou Facebook.")
+        raise HTTPException(422, "Link nao reconhecido. Use YouTube, Instagram, TikTok, Facebook ou Pinterest.")
     tmpdir = _tmpdir()
     opts = {
         "outtmpl": os.path.join(tmpdir, "%(id)s.%(ext)s"),

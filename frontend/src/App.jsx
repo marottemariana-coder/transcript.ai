@@ -28,7 +28,7 @@ export default function App() {
                   <span className="pill pill-active" title="plano pro, sem limite de minutos">pro</span>
                 ) : (
                   <span className="hidden sm:inline font-mono text-xs text-gray opacity-40 hover:opacity-100 transition-opacity cursor-default"
-                    title={`${user.minutes_used} de ${user.minutes_limit} minutos usados este mes`}>
+                    title={`${user.minutes_used} de ${user.minutes_limit} minutos usados este mês`}>
                     {user.minutes_used}/{user.minutes_limit} min
                   </span>
                 )}

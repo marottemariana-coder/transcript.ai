@@ -3,6 +3,7 @@ import { api } from '../lib/api'
 import { useJob } from '../hooks/useJob'
 import StatusBadge from '../components/StatusBadge'
 import { Link } from 'react-router-dom'
+import Marquee from '../components/Marquee'
 
 export default function Batch() {
   const [text, setText] = useState('')
@@ -21,10 +22,10 @@ export default function Batch() {
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="space-y-2">
-        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(36px, 6vw, 64px)' }}>
+        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em] hero-line" style={{ fontSize: 'clamp(36px, 6vw, 64px)' }}>
           importação em lote
         </h1>
-        <p className="text-gray text-sm">cole até 50 links, um por linha. cada um vira um job independente.</p>
+        <p className="text-gray text-sm hero-subtitle">cole até 50 links, um por linha. cada um vira um job independente.</p>
       </div>
       <textarea className="input h-48 font-mono text-xs" placeholder={'https://youtube.com/...\nhttps://instagram.com/...'}
         value={text} onChange={e => setText(e.target.value)} />
@@ -33,6 +34,7 @@ export default function Batch() {
       <div className="border-t border-hairline">
         {jobs.map((j, i) => <BatchRow key={j.id} id={j.id} index={i} />)}
       </div>
+      <Marquee />
     </div>
   )
 }

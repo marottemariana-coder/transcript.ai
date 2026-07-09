@@ -83,7 +83,7 @@ class LinkBody(BaseModel):
 def create_link_job(body: LinkBody, x_anon_id: str = Header(default=None),
                     user: User | None = Depends(optional_user), db: Session = Depends(get_db)):
     if not detect_platform(body.url):
-        raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook")
+        raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook, Pinterest")
     _check_quota(db, user, x_anon_id)
     job = Job(user_id=user.id if user else None, anon_id=None if user else x_anon_id,
               source_type=SourceType.link, source_url=body.url, diarize=body.diarize,
@@ -176,7 +176,7 @@ def create_download_job(body: DownloadBody, x_anon_id: str = Header(default=None
                         user: User | None = Depends(optional_user), db: Session = Depends(get_db)):
     """Download de midia sem transcrever — video ou foto/carrossel."""
     if not detect_platform(body.url):
-        raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook")
+        raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook, Pinterest")
     import json as _json
     meta = _json.dumps({"media_type": body.media_type, "items": body.items})
     job = Job(user_id=user.id if user else None, anon_id=None if user else x_anon_id,

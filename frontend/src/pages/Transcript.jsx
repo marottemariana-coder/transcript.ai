@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { api, exportUrl } from '../lib/api'
+import Marquee from '../components/Marquee'
 
 const FORMATS = ['txt', 'docx', 'pdf', 'srt', 'vtt', 'json', 'html', 'fcpxml']
-const LANGS = [['pt-br', 'portugues'], ['en', 'ingles'], ['es', 'espanhol'], ['fr', 'frances'], ['de', 'alemao'], ['it', 'italiano'], ['ja', 'japones']]
+const LANGS = [['pt-br', 'português'], ['en', 'inglês'], ['es', 'espanhol'], ['fr', 'francês'], ['de', 'alemão'], ['it', 'italiano'], ['ja', 'japonês']]
 
 const ts = s => {
   const m = Math.floor(s / 60), sec = Math.floor(s % 60)
@@ -85,10 +86,10 @@ export default function TranscriptPage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1 min-w-0">
-          <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em] truncate" style={{ fontSize: 'clamp(28px, 4.5vw, 48px)' }}>
+          <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em] truncate hero-line" style={{ fontSize: 'clamp(28px, 4.5vw, 48px)' }}>
             {t.filename || `transcrição ${t.id}`}
           </h1>
-          <p className="mono-label">idioma detectado: {t.language || 'auto'}</p>
+          <p className="mono-label hero-subtitle">idioma detectado: {t.language || 'auto'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {FORMATS.map(f => (
@@ -106,7 +107,7 @@ export default function TranscriptPage() {
         <span className="border-l border-hairline pl-4 mono-label">ia</span>
         {['summary', 'quotes', 'mindmap', 'script'].map(f => (
           <button key={f} className="btn-ghost text-[10px] px-3 py-1.5" onClick={() => runAi(f)}>
-            {{ summary: 'resumo', quotes: 'citacoes', mindmap: 'mapa mental', script: 'roteiro' }[f]}
+            {{ summary: 'resumo', quotes: 'citações', mindmap: 'mapa mental', script: 'roteiro' }[f]}
           </button>
         ))}
         {speakers.length > 0 && (
@@ -156,7 +157,7 @@ export default function TranscriptPage() {
       {ai && (
         <div className="space-y-2 pt-4 hr">
           <div className="flex justify-between">
-            <span className="mono-label">{{ summary: 'resumo', quotes: 'citacoes', mindmap: 'mapa mental', script: 'roteiro' }[ai.feature]}</span>
+            <span className="mono-label">{{ summary: 'resumo', quotes: 'citações', mindmap: 'mapa mental', script: 'roteiro' }[ai.feature]}</span>
             <button className="font-mono text-xs uppercase tracking-[0.08em] text-gray hover:text-ink transition-colors" onClick={() => setAi(null)}>fechar</button>
           </div>
           <pre className="whitespace-pre-wrap text-sm font-body leading-relaxed">{ai.text}</pre>
@@ -183,6 +184,7 @@ export default function TranscriptPage() {
       </div>
 
       <Chat id={t.id} />
+      <Marquee />
     </div>
   )
 }
@@ -239,7 +241,7 @@ function Chat({ id }) {
 
   return (
     <div className="space-y-4 pt-6 hr">
-      <p className="mono-label">chat com o vídeo — respostas baseadas só nesta transcrição</p>
+      <p className="mono-label">chat com o vídeo: respostas baseadas só nesta transcrição</p>
       <div className="space-y-3 max-h-64 overflow-y-auto">
         {msgs.map((m, i) => (
           <p key={i} className={`text-sm ${m.role === 'user' ? 'text-ink' : 'text-gray'}`}>

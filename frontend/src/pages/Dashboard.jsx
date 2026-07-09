@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, triggerDownload } from '../lib/api'
 import StatusBadge from '../components/StatusBadge'
 import { TrashIcon } from '../components/icons'
+import Marquee from '../components/Marquee'
 
 export default function Dashboard() {
   const [jobs, setJobs] = useState([])
@@ -39,7 +40,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end gap-4 justify-between">
-        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(36px, 6vw, 64px)' }}>
+        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em] hero-line" style={{ fontSize: 'clamp(36px, 6vw, 64px)' }}>
           histórico
         </h1>
         <div className="flex gap-3 w-full sm:w-96">
@@ -70,10 +71,10 @@ export default function Dashboard() {
           </p>
         )}
         {jobs.map((j, i) => (
-          <div key={j.id} className="py-4 border-b border-hairline flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
+          <div key={j.id} className="group py-4 border-b border-hairline flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
             <div className="flex items-center gap-4 min-w-0">
               <input type="checkbox" className="shrink-0" checked={selected.includes(j.id)} onChange={() => toggle(j.id)} />
-              <span className="editorial-index shrink-0">{String(jobs.length - i).padStart(3, '0')}</span>
+              <span className="editorial-index shrink-0 px-1 transition-colors duration-200 group-hover:bg-ink group-hover:text-paper">{String(jobs.length - i).padStart(3, '0')}</span>
               <div className="min-w-0">
                 <p className="text-sm truncate">{j.filename || j.source_url || `job ${j.id}`}</p>
                 <p className="font-mono text-xs text-gray">
@@ -105,6 +106,7 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+      <Marquee />
     </div>
   )
 }

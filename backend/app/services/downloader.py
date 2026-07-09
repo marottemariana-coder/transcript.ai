@@ -11,6 +11,7 @@ PLATFORMS = {
     "instagram": re.compile(r"instagram\.com"),
     "tiktok": re.compile(r"tiktok\.com"),
     "facebook": re.compile(r"(facebook\.com|fb\.watch)"),
+    "pinterest": re.compile(r"(pinterest\.[a-z.]+|pin\.it)"),
 }
 
 MEDIA_EXTS = {".mp4", ".mov", ".webm", ".mkv", ".jpg", ".jpeg", ".png", ".gif", ".webp",

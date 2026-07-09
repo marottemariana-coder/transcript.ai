@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
 import { api } from '../lib/api'
+import Marquee from '../components/Marquee'
+import TopProgressBar from '../components/TopProgressBar'
 
 const TABS = [
   { key: 'upload', label: 'enviar arquivo' },
@@ -15,6 +17,7 @@ export default function Analyze() {
   const fileRef = useRef()
   const [url, setUrl] = useState('')
   const [preview, setPreview] = useState(null)
+  const [fileName, setFileName] = useState(null)
 
   const reset = () => { setResult(''); setError('') }
 
@@ -64,11 +67,13 @@ export default function Analyze() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-10">
+      <TopProgressBar indeterminate={busy} />
       <div className="space-y-3">
         <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
-          analisar<br />conteúdo
+          <span className="hero-line">analisar</span>
+          <span className="hero-line">conteúdo</span>
         </h1>
-        <p className="text-gray text-sm max-w-md">
+        <p className="text-gray text-sm max-w-md hero-subtitle">
           a IA olha sua foto ou vídeo e te diz o que mostra, o que representa e o sentimento que transmite
         </p>
       </div>
@@ -85,13 +90,18 @@ export default function Analyze() {
       <div className="space-y-4">
         {tab === 'upload' && (
           <>
-            <div className="border border-ink p-10 text-center space-y-2">
+            <div className="border border-ink p-10 text-center space-y-4 cursor-pointer" onClick={() => fileRef.current?.click()}>
               <p className="font-mono text-xs uppercase tracking-[0.08em] text-gray">( solte o arquivo )</p>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <span className="pill pointer-events-none">escolher arquivo</span>
+                <span className="font-mono text-xs text-gray">{fileName || '( nenhum arquivo )'}</span>
+              </div>
               <input ref={fileRef} type="file"
                 accept="image/*,video/mp4,video/mov,video/webm,video/quicktime"
-                className="input text-center border-0" onChange={() => {
+                className="sr-only" onChange={() => {
                   reset()
                   const f = fileRef.current?.files[0]
+                  setFileName(f?.name || null)
                   setPreview(f && f.type.startsWith('image/') ? URL.createObjectURL(f) : null)
                 }} />
             </div>
@@ -142,6 +152,7 @@ export default function Analyze() {
           </div>
         </div>
       )}
+      <Marquee />
     </div>
   )
 }

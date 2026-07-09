@@ -4,6 +4,8 @@ import { useJob } from '../hooks/useJob'
 import Progress from '../components/Progress'
 import StatusBadge from '../components/StatusBadge'
 import { TrashIcon } from '../components/icons'
+import Marquee from '../components/Marquee'
+import TopProgressBar from '../components/TopProgressBar'
 
 function JobThumbnail({ jobId, hasThumbnail, className }) {
   const [src, setSrc] = useState(null)
@@ -111,18 +113,20 @@ export default function Downloads() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-10">
+      <TopProgressBar progress={job && job.status !== 'done' && job.status !== 'error' ? job.progress : null} />
       <div className="space-y-3">
         <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
-          baixar<br />conteúdo
+          <span className="hero-line">baixar</span>
+          <span className="hero-line">conteúdo</span>
         </h1>
-        <p className="text-gray text-sm max-w-md">salve vídeos, fotos e carrosséis das redes sociais</p>
+        <p className="text-gray text-sm max-w-md hero-subtitle">salve vídeos, fotos e carrosséis das redes sociais</p>
       </div>
 
       {/* Seletor de tipo — só aparece sem preview */}
       {!preview && (
         <div className="grid grid-cols-2 gap-px bg-hairline">
           {[
-            { key: 'video', label: 'Vídeo', desc: 'YouTube, Reels, TikTok, Facebook' },
+            { key: 'video', label: 'Vídeo', desc: 'YouTube, Reels, TikTok, Facebook, Pinterest' },
             { key: 'photo', label: 'Foto / Carrossel', desc: 'Instagram (perfil público)' },
           ].map(t => (
             <button key={t.key} onClick={() => setMediaType(t.key)}
@@ -253,6 +257,7 @@ export default function Downloads() {
           </div>
         </div>
       )}
+      <Marquee />
     </div>
   )
 }

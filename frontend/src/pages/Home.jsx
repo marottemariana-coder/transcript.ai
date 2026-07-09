@@ -4,8 +4,10 @@ import { api } from '../lib/api'
 import { useJob } from '../hooks/useJob'
 import Progress from '../components/Progress'
 import StatusBadge from '../components/StatusBadge'
+import Marquee from '../components/Marquee'
+import TopProgressBar from '../components/TopProgressBar'
 
-const LANGS = [['', 'sem traducao'], ['pt-br', 'portugues'], ['en', 'ingles'], ['es', 'espanhol'], ['fr', 'frances'], ['de', 'alemao'], ['it', 'italiano'], ['ja', 'japones']]
+const LANGS = [['', 'sem tradução'], ['pt-br', 'português'], ['en', 'inglês'], ['es', 'espanhol'], ['fr', 'francês'], ['de', 'alemão'], ['it', 'italiano'], ['ja', 'japonês']]
 
 export default function Home() {
   const [tab, setTab] = useState('upload')
@@ -31,11 +33,13 @@ export default function Home() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-10">
+      <TopProgressBar progress={job && job.status !== 'done' && job.status !== 'error' ? job.progress : null} />
       <div className="space-y-3">
         <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
-          áudio e vídeo<br />em texto
+          <span className="hero-line">áudio e vídeo</span>
+          <span className="hero-line">em texto</span>
         </h1>
-        <p className="text-gray text-sm max-w-md">envie um arquivo, cole um link ou grave direto. a primeira transcrição não exige conta.</p>
+        <p className="text-gray text-sm max-w-md hero-subtitle">envie um arquivo, cole um link ou grave direto. a primeira transcrição não exige conta.</p>
       </div>
 
       <div className="flex gap-2">
@@ -90,17 +94,24 @@ export default function Home() {
           )}
         </div>
       )}
+      <Marquee />
     </div>
   )
 }
 
 function UploadTab({ start, diarize, translateTo }) {
   const ref = useRef()
+  const [fileName, setFileName] = useState(null)
   return (
     <div className="space-y-4">
-      <div className="border border-ink p-10 text-center space-y-2">
+      <div className="border border-ink p-10 text-center space-y-4 cursor-pointer" onClick={() => ref.current?.click()}>
         <p className="font-mono text-xs uppercase tracking-[0.08em] text-gray">( solte o arquivo )</p>
-        <input ref={ref} type="file" accept="video/*,audio/*" className="input text-center border-0" />
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <span className="pill pointer-events-none">escolher arquivo</span>
+          <span className="font-mono text-xs text-gray">{fileName || '( nenhum arquivo )'}</span>
+        </div>
+        <input ref={ref} type="file" accept="video/*,audio/*" className="sr-only"
+          onChange={e => setFileName(e.target.files[0]?.name || null)} />
       </div>
       <p className="mono-label">mp4, mov, mp3, wav, m4a, webm</p>
       <button className="btn w-full" onClick={() => start(async () => {
@@ -172,7 +183,7 @@ function RecordTab({ start }) {
             fd.append('file', new File([blob], 'gravacao.webm'))
             fd.append('source', 'recording')
             return api('/jobs/upload', { method: 'POST', body: fd, headers: {} })
-          })}>transcrever gravacao</button>
+          })}>transcrever gravação</button>
         </>
       )}
     </div>
