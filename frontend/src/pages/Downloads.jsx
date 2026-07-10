@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge'
 import { TrashIcon } from '../components/icons'
 import Marquee from '../components/Marquee'
 import TopProgressBar from '../components/TopProgressBar'
+import ChromeScene from '../components/ChromeScene'
 
 function JobThumbnail({ jobId, hasThumbnail, className }) {
   const [src, setSrc] = useState(null)
@@ -114,12 +115,15 @@ export default function Downloads() {
   return (
     <div className="max-w-2xl mx-auto space-y-10">
       <TopProgressBar progress={job && job.status !== 'done' && job.status !== 'error' ? job.progress : null} />
-      <div className="space-y-3">
-        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
+      <div className="space-y-3 relative">
+        <div aria-hidden="true" className="pointer-events-none absolute -top-8 right-0 w-[160px] hidden sm:block">
+          <ChromeScene shape="octahedron" height={220} />
+        </div>
+        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em] relative z-10" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
           <span className="hero-line">baixar</span>
           <span className="hero-line">conteúdo</span>
         </h1>
-        <p className="text-gray text-sm max-w-md hero-subtitle">salve vídeos, fotos e carrosséis das redes sociais</p>
+        <p className="text-gray text-sm max-w-md hero-subtitle relative z-10">salve vídeos, fotos e carrosséis das redes sociais</p>
       </div>
 
       {/* Seletor de tipo — só aparece sem preview */}
