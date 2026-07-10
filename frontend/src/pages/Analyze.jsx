@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { api } from '../lib/api'
 import Marquee from '../components/Marquee'
 import TopProgressBar from '../components/TopProgressBar'
+import ChromeScene from '../components/ChromeScene'
 
 const TABS = [
   { key: 'upload', label: 'enviar arquivo' },
@@ -68,12 +69,15 @@ export default function Analyze() {
   return (
     <div className="max-w-2xl mx-auto space-y-10">
       <TopProgressBar indeterminate={busy} />
-      <div className="space-y-3">
-        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em]" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
+      <div className="space-y-3 relative">
+        <div aria-hidden="true" className="pointer-events-none absolute -top-8 right-0 w-[160px] hidden sm:block">
+          <ChromeScene shape="icosahedron" height={220} />
+        </div>
+        <h1 className="font-display font-semibold leading-[0.92] tracking-[-0.03em] relative z-10" style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}>
           <span className="hero-line">analisar</span>
           <span className="hero-line">conteúdo</span>
         </h1>
-        <p className="text-gray text-sm max-w-md hero-subtitle">
+        <p className="text-gray text-sm max-w-md hero-subtitle relative z-10">
           a IA olha sua foto ou vídeo e te diz o que mostra, o que representa e o sentimento que transmite
         </p>
       </div>

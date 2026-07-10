@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Marquee from '../components/Marquee'
+import ChromeScene from '../components/ChromeScene'
 
 const TOOLS = [
   { n: '01', label: 'transcrever', desc: 'áudio e vídeo, upload ou link', to: '/transcrever' },
@@ -14,12 +15,19 @@ export default function Landing() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="space-y-16">
-        <div className="space-y-4">
-          <p className="mono-label">transcrição, tradução e download com IA</p>
-          <h1 className="!font-mono uppercase font-medium leading-[0.95] tracking-[0.01em] hero-line" style={{ fontSize: 'clamp(38px, 7vw, 84px)' }}>
+        <div className="space-y-4 relative">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 -z-10 opacity-50 scale-75 w-[240px]
+              min-[900px]:left-auto min-[900px]:right-[-190px] min-[900px]:translate-x-0 min-[900px]:z-0 min-[900px]:opacity-100 min-[900px]:scale-100"
+          >
+            <ChromeScene shape="cubes" height={240} />
+          </div>
+          <p className="mono-label relative z-10">transcrição, tradução e download com IA</p>
+          <h1 className="!font-mono uppercase font-medium leading-[0.95] tracking-[0.01em] hero-line relative z-10" style={{ fontSize: 'clamp(38px, 7vw, 84px)' }}>
             transcript<span className="text-gray">.ai</span>
           </h1>
-          <p className="text-gray text-sm max-w-md hero-subtitle">
+          <p className="text-gray text-sm max-w-md hero-subtitle relative z-10">
             áudio, vídeo, fotos e carrosséis das redes sociais, transcritos, traduzidos e
             analisados por IA. acesso disponível para contas do plano pro.
           </p>
