@@ -1,5 +1,6 @@
 """Pipeline assincrono: download -> extracao -> transcricao -> (traducao) -> pronto."""
 import os
+import shutil
 import uuid
 from .celery_app import celery
 from ..db import SessionLocal
@@ -25,11 +26,13 @@ def process_job(job_id: int):
         return
     workdir = os.path.join(settings.MEDIA_DIR, str(uuid.uuid4()))
     os.makedirs(workdir, exist_ok=True)
+    remove_src_after_audio = False
     try:
         # 1. Obter midia
         if job.source_type == SourceType.link:
             _set(db, job, JobStatus.downloading, 10)
             keep = job.keep_original and settings.ENABLE_ORIGINAL_DOWNLOAD
+            remove_src_after_audio = not keep
             media_type, selected_items = "video", []
             if job.download_only and job.auto_translate_to:
                 try:
@@ -46,6 +49,9 @@ def process_job(job_id: int):
                 job.auto_translate_to = None
                 if job.media_path:
                     job.thumbnail_path = make_thumbnail(job.media_path, workdir)
+                elif os.path.exists(info["path"]):
+                    # download descartavel (nao mantido): nada mais vai referencia-lo
+                    os.remove(info["path"])
             src = info["path"]
             job.original_filename = info.get("title")
         else:
@@ -60,6 +66,9 @@ def process_job(job_id: int):
         _set(db, job, JobStatus.extracting, 30)
         audio_path = os.path.join(workdir, "audio.mp3")
         audio_svc.extract_audio(src, audio_path)
+        if remove_src_after_audio and os.path.exists(src):
+            # video original ja nao e mais necessario apos extrair o audio
+            os.remove(src)
         job.audio_path = audio_path
         job.duration_seconds = audio_svc.probe_duration(audio_path)
         db.commit()
@@ -101,8 +110,10 @@ def process_job(job_id: int):
     except DownloadError as e:
         job.status, job.error_message = JobStatus.error, str(e)
         db.commit()
+        shutil.rmtree(workdir, ignore_errors=True)
     except Exception as e:
         job.status, job.error_message = JobStatus.error, f"Erro no processamento: {e}"
         db.commit()
+        shutil.rmtree(workdir, ignore_errors=True)
     finally:
         db.close()

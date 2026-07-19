@@ -65,6 +65,7 @@ def _zip_dir(out_dir: str, title: str) -> str:
             full = os.path.join(out_dir, f)
             if os.path.splitext(f)[1].lower() in MEDIA_EXTS and full != zip_path:
                 zf.write(full, f)
+                os.remove(full)
     return zip_path
 
 
