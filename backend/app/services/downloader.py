@@ -122,9 +122,18 @@ def _base_opts(out_dir: str) -> dict:
     return opts
 
 
-def _download_video(url: str, out_dir: str, selected_items: list[int] | None = None) -> dict:
+QUALITY_FORMATS = {
+    "best": "bestvideo+bestaudio/best",
+    "1080p": "bestvideo[height<=1080]+bestaudio/best[height<=1080]",
+    "720p": "bestvideo[height<=720]+bestaudio/best[height<=720]",
+    "480p": "bestvideo[height<=480]+bestaudio/best[height<=480]",
+}
+
+
+def _download_video(url: str, out_dir: str, selected_items: list[int] | None = None,
+                    quality: str = "best") -> dict:
     opts = _base_opts(out_dir)
-    opts["format"] = "bestvideo+bestaudio/best"
+    opts["format"] = QUALITY_FORMATS.get(quality, QUALITY_FORMATS["best"])
     opts["merge_output_format"] = "mp4"
     if selected_items:
         # Only use playlist mode when selecting specific items from a carousel
@@ -259,9 +268,29 @@ def _download_photos(url: str, out_dir: str) -> dict:
     return {"path": zip_path, "title": title, "duration": None}
 
 
+def _download_audio_mp3(url: str, out_dir: str) -> dict:
+    """Baixa apenas o audio e converte para MP3 (para o usuario baixar, nao para transcricao)."""
+    opts = _base_opts(out_dir)
+    opts["format"] = "bestaudio/best"
+    opts["postprocessors"] = [{
+        "key": "FFmpegExtractAudio",
+        "preferredcodec": "mp3",
+        "preferredquality": "192",
+    }]
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        info = ydl.extract_info(url, download=True)
+        title = info.get("title") or "audio"
+        duration = info.get("duration")
+    files = _collect(out_dir, {".mp3"})
+    if not files:
+        raise DownloadError("Nao foi possivel extrair o audio. Verifique o link.")
+    return {"path": files[0], "title": title, "duration": duration}
+
+
 def download_media(url: str, out_dir: str, audio_only: bool = True,
-                   media_type: str = "video", selected_items: list[int] | None = None) -> dict:
-    """Baixa audio, video ou foto/carrossel. media_type: 'video' | 'photo'."""
+                   media_type: str = "video", selected_items: list[int] | None = None,
+                   quality: str = "best") -> dict:
+    """Baixa audio, video ou foto/carrossel. media_type: 'video' | 'photo' | 'audio'."""
     try:
         if audio_only:
             opts = _base_opts(out_dir)
@@ -273,7 +302,9 @@ def download_media(url: str, out_dir: str, audio_only: bool = True,
                         "duration": info.get("duration")}
         if media_type == "photo":
             return _download_photos(url, out_dir)
-        return _download_video(url, out_dir, selected_items=selected_items)
+        if media_type == "audio":
+            return _download_audio_mp3(url, out_dir)
+        return _download_video(url, out_dir, selected_items=selected_items, quality=quality)
     except DownloadError:
         raise
     except yt_dlp.utils.DownloadError as e:
@@ -288,7 +319,7 @@ def download_media(url: str, out_dir: str, audio_only: bool = True,
         if "private" in msg_lower or "login" in msg_lower:
             raise DownloadError("Conteudo privado ou que exige login.")
         # Instagram photo post: yt-dlp says "no video" when called as video — retry as photo
-        if "no video" in msg_lower and media_type != "photo":
+        if "no video" in msg_lower and media_type not in ("photo", "audio"):
             try:
                 return _download_photos(url, out_dir)
             except (DownloadError, Exception):

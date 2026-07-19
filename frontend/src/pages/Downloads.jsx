@@ -31,6 +31,7 @@ function JobThumbnail({ jobId, hasThumbnail, className }) {
 export default function Downloads() {
   const [url, setUrl] = useState('')
   const [mediaType, setMediaType] = useState('video')
+  const [quality, setQuality] = useState('best')
   const [preview, setPreview] = useState(null)
   const [selected, setSelected] = useState([])
   const [previewing, setPreviewing] = useState(false)
@@ -93,17 +94,17 @@ export default function Downloads() {
     const chosenItems = preview
       ? (preview.items.length === 1 ? [] : selected)
       : []
-    // If user explicitly chose "Foto / Carrossel", always respect that.
-    // Otherwise auto-detect from preview: if all selected items are photo → photo, else video.
-    const chosenType = mediaType === 'photo'
-      ? 'photo'
+    // Se o usuario escolheu explicitamente "Foto / Carrossel" ou "Audio (MP3)", respeita isso.
+    // Senao, deduz do preview: se todos os itens selecionados sao foto → foto, senao video.
+    const chosenType = mediaType === 'photo' || mediaType === 'audio'
+      ? mediaType
       : (preview
         ? (preview.items.filter(i => selected.includes(i.index)).every(i => i.type === 'photo') ? 'photo' : 'video')
         : 'video')
     try {
       const j = await api('/jobs/download', {
         method: 'POST',
-        body: JSON.stringify({ url: url.trim(), media_type: chosenType, items: chosenItems }),
+        body: JSON.stringify({ url: url.trim(), media_type: chosenType, items: chosenItems, quality }),
       })
       setJobId(j.id); setUrl(''); setPreview(null); setSelected([])
     } catch (e) { setError(e.message) }
@@ -128,9 +129,10 @@ export default function Downloads() {
 
       {/* Seletor de tipo — só aparece sem preview */}
       {!preview && (
-        <div className="grid grid-cols-2 gap-px bg-hairline">
+        <div className="grid grid-cols-3 gap-px bg-hairline">
           {[
             { key: 'video', label: 'Vídeo', desc: 'YouTube, Reels, TikTok, Facebook, Pinterest' },
+            { key: 'audio', label: 'Áudio (MP3)', desc: 'Só o som, sem vídeo' },
             { key: 'photo', label: 'Foto / Carrossel', desc: 'Instagram (perfil público)' },
           ].map(t => (
             <button key={t.key} onClick={() => setMediaType(t.key)}
@@ -139,6 +141,26 @@ export default function Downloads() {
               <p className="font-mono text-xs text-gray">{t.desc}</p>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Seletor de qualidade — só para vídeo */}
+      {!preview && mediaType === 'video' && (
+        <div className="space-y-2">
+          <p className="mono-label">qualidade</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: 'best', label: 'Melhor disponível' },
+              { key: '1080p', label: '1080p' },
+              { key: '720p', label: '720p' },
+              { key: '480p', label: '480p' },
+            ].map(q => (
+              <button key={q.key} onClick={() => setQuality(q.key)}
+                className={`font-mono text-xs uppercase tracking-[0.08em] px-3 py-1.5 rounded-full border transition-colors ${quality === q.key ? 'border-ink bg-ink text-paper' : 'border-hairline text-gray hover:text-ink'}`}>
+                {q.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

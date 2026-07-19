@@ -33,17 +33,19 @@ def process_job(job_id: int):
             _set(db, job, JobStatus.downloading, 10)
             keep = job.keep_original and settings.ENABLE_ORIGINAL_DOWNLOAD
             remove_src_after_audio = not keep
-            media_type, selected_items = "video", []
+            media_type, selected_items, quality = "video", [], "best"
             if job.download_only and job.auto_translate_to:
                 try:
                     import json as _json
                     meta = _json.loads(job.auto_translate_to)
                     media_type = meta.get("media_type", "video")
                     selected_items = meta.get("items", [])
+                    quality = meta.get("quality", "best")
                 except Exception:
                     media_type = job.auto_translate_to or "video"
             info = download_media(job.source_url, workdir, audio_only=not keep,
-                                  media_type=media_type, selected_items=selected_items)
+                                  media_type=media_type, selected_items=selected_items,
+                                  quality=quality)
             job.media_path = info["path"] if keep else None
             if job.download_only:
                 job.auto_translate_to = None

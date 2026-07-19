@@ -151,18 +151,19 @@ def preview_url(body: PreviewBody, user: User = Depends(require_pro)):
 
 class DownloadBody(BaseModel):
     url: str
-    media_type: str = "video"  # "video" | "photo"
+    media_type: str = "video"  # "video" | "photo" | "audio"
     items: list[int] = []      # indices 1-based; vazio = tudo
+    quality: str = "best"      # "best" | "1080p" | "720p" | "480p" — so vale para "video"
 
 
 @router.post("/download")
 def create_download_job(body: DownloadBody,
                         user: User = Depends(require_pro), db: Session = Depends(get_db)):
-    """Download de midia sem transcrever — video ou foto/carrossel."""
+    """Download de midia sem transcrever — video, audio (mp3) ou foto/carrossel."""
     if not detect_platform(body.url):
         raise HTTPException(422, "Link nao reconhecido. Aceitos: YouTube, Instagram, TikTok, Facebook, Pinterest")
     import json as _json
-    meta = _json.dumps({"media_type": body.media_type, "items": body.items})
+    meta = _json.dumps({"media_type": body.media_type, "items": body.items, "quality": body.quality})
     job = Job(user_id=user.id,
               source_type=SourceType.link, source_url=body.url,
               keep_original=True, download_only=True,
